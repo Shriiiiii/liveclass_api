@@ -67,7 +67,7 @@ class LiveClassesController < ApplicationController
     render json: { error: "404 Not Found:requested session not found " }, status: :not_found
   end
 
-  # parameters require and permit and handledd unperrmitted data adding
+  # re and permit
   private
 
   def live_class_params
@@ -75,7 +75,7 @@ class LiveClassesController < ApplicationController
     permitted_data = raw_data.permit(:id, :subject, :trainer, :status, :capacity)
 
     if raw_data.keys != permitted_data.keys
-      logger.warn " [WARN] Security Warning: Attempted to submit non-existent database columns "
+      logger.warn " [WARN] Security Warning: Attempted not valid data  "
     end
 
     permitted_data

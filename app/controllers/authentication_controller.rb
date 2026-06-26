@@ -2,7 +2,8 @@ class AuthenticationController < ApplicationController
   before_action :authorize_request, only: [ :logout ]
 
   def signup
-    user = User.new(signup_params)
+    user = User.new(username: signup_params[:username], password: signup_params[:password])
+    user.role = signup_params[:role] if signup_params[:role].present?
     user.session_key = SecureRandom.hex(10)
 
     if user.save
@@ -49,7 +50,7 @@ class AuthenticationController < ApplicationController
   private
 
   def signup_params
-    permitted_data = params.permit(:username, :password)
+    permitted_data = params.permit(:username, :password, :role)
 
     if params.keys.excluding("controller", "action").sort != permitted_data.keys.sort
       logger.warn " [WARN] attenpting to add a dta that is not required"
