@@ -1,0 +1,11 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  user: one
+  live_class: one
+  enrolled_at: 2026-06-24 10:17:43
+
+two:
+  user: two
+  live_class: two
+  enrolled_at: 2026-06-24 10:17:43
