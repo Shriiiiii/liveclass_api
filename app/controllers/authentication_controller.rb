@@ -1,5 +1,5 @@
 class AuthenticationController < ApplicationController
-  before_action :authorize_request, only: [:logout]
+  before_action :authorize_request, only: [ :logout ]
 
   def signup
     user = User.new(signup_params)
@@ -15,10 +15,10 @@ class AuthenticationController < ApplicationController
 
   def login
     logger.info " [INFO] Login started for user: #{params[:username]} "
-    
+
     user = User.find_by(username: params[:username])
 
-    #Checking if the user exists and the password is correct
+    # Checking if the user exists and the password is correct
     if user && user.authenticate(params[:password])
       # Create a new session key
       new_key = SecureRandom.hex(10)
@@ -37,8 +37,8 @@ class AuthenticationController < ApplicationController
 
   def logout
     logger.info " [INFO] Logout triggeerd for user: #{@current_user.username} "
-    
-    #changingg the session key after logout in the db
+
+    # changingg the session key after logout in the db
     killed_key = SecureRandom.hex(10)
     @current_user.update!(session_key: killed_key)
 

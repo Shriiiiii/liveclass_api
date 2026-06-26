@@ -3,9 +3,9 @@
 one:
   subject: MyString
   trainer: MyString
-  status: MyString
+  status: Scheduled
 
 two:
   subject: MyString
   trainer: MyString
-  status: MyString
+  status: Scheduled

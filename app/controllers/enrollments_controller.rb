@@ -1,7 +1,7 @@
 class EnrollmentsController < ApplicationController
   before_action :authorize_request
 
-# GET /enrollments
+  # GET /enrollments
   def index
     # Using the Active Record relationship to pull only this student's classes
     my_enrolled_classes = @current_user.live_classes
@@ -16,9 +16,9 @@ class EnrollmentsController < ApplicationController
     if live_class == nil
       return render json: { error: "Class not found" }, status: :not_found
     end
-    
+
     # check if admin or trainer is trying to attend
-    if @current_user.username.include?("admin") || @current_user.username.include?("trainer")
+    if @current_user.trainer? || @current_user.admin?
       logger.warn " [WARN] Security Warning: Admin/Trainer '#{@current_user.username}' blocked from attending a class "
       return render json: { error: "403 Forbidden: Only Students are allowed to attend classes" }, status: :forbidden
     end

@@ -2,14 +2,14 @@ class LiveClassesController < ApplicationController
   # auntherization runnning frst before doing any action
   before_action :authorize_request
   # running helper method set live class
-  before_action :set_live_class, only: [:show, :update, :destroy]
+  before_action :set_live_class, only: [ :show, :update, :destroy ]
 
   def index
     logger.info "[INFO] Authorized Request: Fetching all live classes "
     @classes = LiveClass.all
-    #simple debug for showing total records
+    # simple debug for showing total records
     logger.debug " [DEBUG] DB Metrics - Total Records Loaded: #{@classes.count} "
-    render json: @classes, status: :ok 
+    render json: @classes, status: :ok
   end
 
   # retriving class using id
@@ -22,7 +22,7 @@ class LiveClassesController < ApplicationController
   def create
     logger.info " [INFO] Processing request to createnew live class "
     @class = LiveClass.new(live_class_params)
-    
+
     if @class.save
       logger.info " [INFO] Success: Live Class '#{@class.subject}' created successfully "
       render json: @class, status: :created
@@ -54,12 +54,12 @@ class LiveClassesController < ApplicationController
   def destroy
     logger.warn " [WARN] Permanently deleting Classroom ID #{params[:id]} "
     @class.destroy
-    head :no_content # Returns 204 No Content 
+    head :no_content # Returns 204 No Content
   end
 
 
   private
-  # helper method 
+  # helper method
   def set_live_class
     @class = LiveClass.find(params[:id])
   rescue ActiveRecord::RecordNotFound

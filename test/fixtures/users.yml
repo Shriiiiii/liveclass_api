@@ -3,9 +3,9 @@
 one:
   username: MyString
   password: MyString
-  sesession_key: MyString
+  session_key: MyString
 
 two:
   username: MyString
   password: MyString
-  sesession_key: MyString
+  session_key: MyString
