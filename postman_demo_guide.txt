@@ -1,0 +1,388 @@
+url for render: https://liveclass-api-9s22.onrender.com
+
+part 1: student flow (login: john / password123)
+===
+
+1.1 student happy paths
+---
+signup a new student
+POST /signup
+body:
+{
+  "username": "shridhar",
+  "password": "password123",
+  "role": "student"
+}
+
+login student
+POST /login
+body:
+{
+  "username": "john",
+  "password": "password123"
+}
+*copy token from response*
+
+browse all classes
+GET /live_classes
+header: Authorization = Bearer <student_token>
+
+show class details
+GET /live_classes/1
+header: Authorization = Bearer <student_token>
+
+enroll in class
+POST /enrollments
+header: Authorization = Bearer <student_token>
+body:
+{
+  "live_class_id": 1
+}
+*this will reduce capacity of class 1 from 5 to 4*
+
+view my enrolled classes
+GET /my_classes
+header: Authorization = Bearer <student_token>
+
+student logout
+POST /logout
+header: Authorization = Bearer <student_token>
+
+
+1.2 student sad paths
+---
+login with incorrect password
+POST /login
+body:
+{
+  "username": "john",
+  "password": "wrongpassword"
+}
+*should return 401 unauthorized*
+
+signup with duplicate username
+POST /signup
+body:
+{
+  "username": "john",
+  "password": "password123",
+  "role": "student"
+}
+*should return 422 username already taken*
+
+student try to create class (unauthorized in logic)
+POST /live_classes
+header: Authorization = Bearer <student_token>
+body:
+{
+  "live_class": {
+    "subject": "Design Patterns",
+    "trainer": "Bob",
+    "status": "Scheduled",
+    "capacity": 20
+  }
+}
+
+student try to update class
+PUT /live_classes/1
+header: Authorization = Bearer <student_token>
+body:
+{
+  "live_class": {
+    "status": "Active"
+  }
+}
+
+student try to delete class
+DELETE /live_classes/4
+header: Authorization = Bearer <student_token>
+
+
+1.3 student restrictions
+---
+no token access check
+GET /live_classes
+*should return 401 unauthorized*
+
+using student token after logout
+GET /live_classes
+header: Authorization = Bearer <student_token>
+*should return 401 token invalid*
+
+
+1.4 student edge cases
+---
+enroll in class that does not exist
+POST /enrollments
+header: Authorization = Bearer <student_token>
+body:
+{
+  "live_class_id": 9999
+}
+*should return 404 class not found*
+
+enroll in a completed class
+POST /enrollments
+header: Authorization = Bearer <student_token>
+body:
+{
+  "live_class_id": 3
+}
+*should return 422 class already finished*
+
+enroll in a class with no seats left
+POST /enrollments
+header: Authorization = Bearer <student_token>
+body:
+{
+  "live_class_id": 2
+}
+*should return 422 no seats*
+
+enroll in the same class twice
+POST /enrollments
+header: Authorization = Bearer <student_token>
+body:
+{
+  "live_class_id": 1
+}
+*run this twice, second time should return 422 user already registered*
+
+
+part 2: trainer/admin flow (login: bob / password123)
+===
+
+2.1 trainer happy paths
+---
+signup a new trainer
+POST /signup
+body:
+{
+  "username": "professor_alice",
+  "password": "password123",
+  "role": "trainer"
+}
+
+login trainer
+POST /login
+body:
+{
+  "username": "bob",
+  "password": "password123"
+}
+*copy token from response*
+
+create a new class
+POST /live_classes
+header: Authorization = Bearer <trainer_token>
+body:
+{
+  "live_class": {
+    "subject": "Design Patterns",
+    "trainer": "Bob",
+    "status": "Scheduled",
+    "capacity": 20
+  }
+}
+
+update class status
+PUT /live_classes/1
+header: Authorization = Bearer <trainer_token>
+body:
+{
+  "live_class": {
+    "status": "Active"
+  }
+}
+
+browse all classes
+GET /live_classes
+header: Authorization = Bearer <trainer_token>
+
+show class details
+GET /live_classes/1
+header: Authorization = Bearer <trainer_token>
+
+delete class
+DELETE /live_classes/4
+header: Authorization = Bearer <trainer_token>
+
+trainer logout
+POST /logout
+header: Authorization = Bearer <trainer_token>
+
+
+2.2 trainer sad paths
+---
+login with incorrect password
+POST /login
+body:
+{
+  "username": "bob",
+  "password": "wrongpassword"
+}
+*should return 401 unauthorized*
+
+create class validation fail
+POST /live_classes
+header: Authorization = Bearer <trainer_token>
+body:
+{
+  "live_class": {
+    "subject": "",
+    "status": "wrong"
+  }
+}
+*should return 422 validations fail*
+
+
+2.3 trainer restrictions
+---
+trainer try to enroll in class (should block)
+POST /enrollments
+header: Authorization = Bearer <trainer_token>
+body:
+{
+  "live_class_id": 1
+}
+*should return 403 only students allowed*
+
+trainer try to check schedule (empty list)
+GET /my_classes
+header: Authorization = Bearer <trainer_token>
+*should return empty list since trainers have no enrollments*
+
+using trainer token after logout
+GET /live_classes
+header: Authorization = Bearer <trainer_token>
+*should return 401 token invalid*
+
+
+part 3: all possible endpoints
+===
+POST /signup
+POST /login
+POST /logout
+GET /live_classes
+POST /live_classes
+GET /live_classes/:id
+PUT /live_classes/:id
+PATCH /live_classes/:id
+DELETE /live_classes/:id
+POST /enrollments
+GET /my_classes
+GET /up
+
+
+part 4: GraphQL Flow (POST /graphql)
+===
+For all requests below, set the HTTP method to POST and the URL to:
+http://localhost:3000/graphql
+
+4.1 Public Mutations (No token needed)
+---
+Signup a new user
+Body (GraphQL):
+mutation {
+  signup(username: "alex", password: "password123", role: "student") {
+    message
+  }
+}
+
+Login to get token
+Body (GraphQL):
+mutation {
+  login(username: "alex", password: "password123") {
+    token
+    username
+  }
+}
+*Copy token from response and add to Headers: Authorization = Bearer <token>*
+
+4.2 Student Flow (Authenticated - token needed in Headers)
+---
+Browse all classes
+Body (GraphQL):
+query {
+  liveClasses {
+    id
+    subject
+    trainer
+    capacity
+    status
+  }
+}
+
+Show class details
+Body (GraphQL):
+query {
+  liveClass(id: 27) {
+    id
+    subject
+    trainer
+    capacity
+    status
+    users {
+      username
+    }
+  }
+}
+
+Enroll in a class
+Body (GraphQL):
+mutation {
+  enrollInClass(liveClassId: 27) {
+    message
+  }
+}
+
+View my schedule
+Body (GraphQL):
+query {
+  myClasses {
+    id
+    subject
+    trainer
+    status
+  }
+}
+
+Student Logout
+Body (GraphQL):
+mutation {
+  logout {
+    message
+  }
+}
+
+4.3 Trainer/Admin Flow (Authenticated - token needed in Headers)
+---
+Create a new class
+Body (GraphQL):
+mutation {
+  createLiveClass(subject: "Intro to Rails", trainer: "manoj", capacity: 10, status: "Scheduled") {
+    liveClass {
+      id
+      subject
+    }
+  }
+}
+
+Update class status
+Body (GraphQL):
+mutation {
+  updateLiveClass(id: 27, status: "Active") {
+    liveClass {
+      id
+      status
+    }
+  }
+}
+
+Delete a class
+Body (GraphQL):
+mutation {
+  deleteLiveClass(id: 30) {
+    id
+  }
+}
